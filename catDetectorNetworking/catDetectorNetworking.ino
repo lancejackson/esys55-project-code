@@ -86,18 +86,16 @@ void loop() {
     }
   }
   sensorValue = digitalRead(sensorPin);
-  WiFiClient client = server.available();   // listen for incoming clients
-
   if (sensorValue == ACTIVATED) {
     Serial.println("Sensor pressed");
     snooze = 0;
     alarm = 1;
   } else if (snooze) {
-    //Serial.println("Snoozed");
     snooze = 1;
     alarm = 0;
   }
-  
+
+  WiFiClient client = server.available();   // listen for incoming clients
   if (client) {                             // if you get a client,
     Serial.println("new client");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
