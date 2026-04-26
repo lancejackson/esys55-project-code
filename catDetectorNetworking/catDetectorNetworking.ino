@@ -92,7 +92,7 @@ void loop() {
     snooze = 0;
     alarm = 1;
   } else if (snooze) { // Snooze button handling logic
-    snooze = 1;
+    snooze = 0;
     alarm = 0;
   }
 
