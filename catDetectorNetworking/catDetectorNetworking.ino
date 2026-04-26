@@ -85,12 +85,13 @@ void loop() {
       Serial.println("Device disconnected from AP");
     }
   }
-  sensorValue = digitalRead(sensorPin);
-  if (sensorValue == ACTIVATED) {
+
+  sensorValue = digitalRead(sensorPin); // Get sensor data
+  if (sensorValue == ACTIVATED) { // Compare sensor input to what is considered "Activated"
     Serial.println("Sensor pressed");
     snooze = 0;
     alarm = 1;
-  } else if (snooze) {
+  } else if (snooze) { // Snooze button handling logic
     snooze = 1;
     alarm = 0;
   }
