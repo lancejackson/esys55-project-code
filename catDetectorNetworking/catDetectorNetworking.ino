@@ -1,3 +1,4 @@
+
 #include "WiFiS3.h"
 #include "arduino_secrets.h" 
 
@@ -8,8 +9,8 @@ int keyIndex = 0;                 // your network key index number (needed only 
 int led =  LED_BUILTIN;
 int status = WL_IDLE_STATUS;
 
-const int sensorPin = 13;
-const int ACTIVATED = 0;
+const int sensorPin = 8;
+const int ACTIVATED = LOW;
 int sensorValue; 
 int alarm;
 int snooze;
@@ -63,7 +64,7 @@ void setup() {
   // you're connected now, so print out the status
   printWiFiStatus();
 
-  pinMode(sensorPin, INPUT);
+  pinMode(sensorPin, INPUT_PULLUP);
 
   alarm = 0;
   snooze = 1;
@@ -71,7 +72,6 @@ void setup() {
 
 
 void loop() {
-  
   // compare the previous status to the current status
   if (status != WiFi.status()) {
     // it has changed update the variable
@@ -85,20 +85,24 @@ void loop() {
       Serial.println("Device disconnected from AP");
     }
   }
-
   sensorValue = digitalRead(sensorPin);
-  
   WiFiClient client = server.available();   // listen for incoming clients
 
+  if (sensorValue == ACTIVATED) {
+    Serial.println("Sensor pressed");
+    snooze = 0;
+    alarm = 1;
+  } else if (snooze) {
+    //Serial.println("Snoozed");
+    snooze = 1;
+    alarm = 0;
+  }
+  
   if (client) {                             // if you get a client,
     Serial.println("new client");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       delayMicroseconds(10);                // This is required for the Arduino Nano RP2040 Connect - otherwise it will loop so fast that SPI will never be served.
-      if (sensorValue == ACTIVATED) {
-        snooze = 0;
-        alarm = 1;
-      }
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
@@ -135,12 +139,9 @@ void loop() {
           currentLine += c;      // add it to the end of the currentLine
         }
 
-        // Check to see if the client request was "GET /H" or "GET /L":
-        if (currentLine.endsWith("GET /H")) {
-          digitalWrite(led, HIGH);               // GET /H turns the LED on
-        }
         if (currentLine.endsWith("GET /L")) {
           snooze = 1;
+          Serial.println("Snoozed");
         }
       }
     }
