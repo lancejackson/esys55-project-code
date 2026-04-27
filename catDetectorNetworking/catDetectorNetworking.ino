@@ -16,6 +16,9 @@ int alarm;
 int snooze;
 bool statusRequested;
 
+unsigned long startTime;
+int breaktime;
+
 WiFiServer server(80);
 
 void setup() {
@@ -42,7 +45,7 @@ void setup() {
 
   // by default the local IP address will be 192.168.4.1
   // you can override it with the following:
-  //WiFi.config(IPAddress(192,168,4,1));
+  WiFi.config(IPAddress(192,168,4,1));
 
   // print the network name (SSID);
   Serial.print("Creating access point named: ");
@@ -67,17 +70,12 @@ void setup() {
 
   pinMode(sensorPin, INPUT_PULLUP);
 
+  startTime = millis();
+
+  breaktime = 10000;
   alarm = 0;
   snooze = 1;
 }
-
-void displayWebpage() {
-}
-
-void sendJSON() {
-  
-}
-
 
 void loop() {
   // compare the previous status to the current status
@@ -107,10 +105,13 @@ void loop() {
   WiFiClient client = server.available();   // listen for incoming clients
   if (client) {                             // if you get a client,
     Serial.println("new client");           // print a message out the serial port
+    startTime = millis();
     statusRequested = false;
     String currentLine = "";                // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
-      delayMicroseconds(10);                // This is required for the Arduino Nano RP2040 Connect - otherwise it will loop so fast that SPI will never be served.
+      if (millis() - startTime > breaktime) {
+        break;
+      }
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
@@ -138,10 +139,13 @@ void loop() {
               client.println("HTTP/1.1 200 OK");
               client.println("Content-type:text/html");
               client.println();
+              client.print("<!DOCTYPE html>");
+              client.print("<html>");
+              client.print("<head></head><body>");
               if (alarm) {
-                client.print("<p id=\"messageText\" style=\"font-size:7vw;\">IR sensor activated</p><br>");
+                client.print("<p id=\"messageText\" style=\"font-size:7vw;\">Cat detected</p><br>");
               } else {
-                client.print("<p id=\"messageText\" style=\"font-size:7vw;\">IR sensor not activated</p><br>");
+                client.print("<p id=\"messageText\" style=\"font-size:7vw;\">Cat not detected</p><br>");
               }
               client.print("<p style=\"font-size:7vw;\"> <a href=\"/L\">Snooze</a></p>");
               client.print("<script>");
@@ -162,6 +166,7 @@ void loop() {
               client.print("update();");
               client.print("setInterval(update, 1000);");
               client.print("</script>");
+              client.print("</body></html>");
               // The HTTP response ends with another blank line:
               client.println();
               // break out of the while loop:
@@ -176,11 +181,11 @@ void loop() {
           currentLine += c;      // add it to the end of the currentLine
         }
 
-        if (currentLine.endsWith("GET /L")) {
+        if (currentLine.indexOf("GET /L") > -1) {
           snooze = 1;
           Serial.println("Snoozed");
         }
-        if (currentLine.endsWith("GET /status")) {
+        if (currentLine.indexOf("GET /status") > -1) {
           statusRequested = true;
         }
       }
