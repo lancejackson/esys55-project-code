@@ -14,6 +14,7 @@ const int ACTIVATED = LOW;
 int sensorValue; 
 int alarm;
 int snooze;
+bool statusRequested;
 
 WiFiServer server(80);
 
@@ -41,7 +42,7 @@ void setup() {
 
   // by default the local IP address will be 192.168.4.1
   // you can override it with the following:
-  WiFi.config(IPAddress(192,48,56,2));
+  //WiFi.config(IPAddress(192,48,56,2));
 
   // print the network name (SSID);
   Serial.print("Creating access point named: ");
@@ -68,6 +69,13 @@ void setup() {
 
   alarm = 0;
   snooze = 1;
+}
+
+void displayWebpage() {
+}
+
+void sendJSON() {
+  
 }
 
 
@@ -105,6 +113,11 @@ void loop() {
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
+
+        if (currentLine.endsWith("GET /status")) {
+          statusRequested = true;
+        }
+
         if (c == '\n') {                    // if the byte is a newline character
 
           // if the current line is blank, you got two newline characters in a row.
@@ -112,22 +125,38 @@ void loop() {
           if (currentLine.length() == 0) {
             // HTTP headers always start with a response code (e.g. HTTP/1.1 200 OK)
             // and a content-type so the client knows what's coming, then a blank line:
-            client.println("HTTP/1.1 200 OK");
-            client.println("Content-type:text/html");
-            client.println();
-
-            // NEWCODE
-            if (alarm) {
-              client.print("<p style=\"font-size:7vw;\">IR sensor activated</p><br>");
-            } else {
-              client.print("<p style=\"font-size:7vw;\">IR sensor not activated</p><br>");
+            if (statusRequested) {
+              client.println("HTTP/1.1 200 OK");
+              client.println("Content-type:application/json");
+              client.println();
+              client.print("{");
+              client.print('\"alarm":');
+              client.print(alarm ? "true" : "false");
+              client.print(",");
+              client.print('\"snooze\":');
+              client.print(snooze ? "true" : "false");
+              client.print("}");
+              client.println();
+            } else { // otherwise
+              client.println("HTTP/1.1 200 OK");
+              client.println("Content-type:text/html");
+              client.println();
+              if (alarm) {
+                client.print("<p id=\"testDOM\" style=\"font-size:7vw;\">IR sensor activated</p><br>");
+              } else {
+                client.print("<p id=\"testDOM\" style=\"font-size:7vw;\">IR sensor not activated</p><br>");
+              }
+              client.print("<p style=\"font-size:7vw;\"> <a href=\"/L\">Snooze</a></p>");
+              client.print("<script>");
+              client.print("function update() {");
+              client.print("document.getElementById(\"testDOM\").innerHTML = new Date();");
+              client.print("}");
+              client.print("setInterval(update, 1000);");
+              client.print("</script>");
+              // The HTTP response ends with another blank line:
+              client.println();
+              // break out of the while loop:
             }
-            // the content of the HTTP response follows the header:
-            client.print("<p style=\"font-size:7vw;\"> <a href=\"/L\">Snooze</a></p>");
-
-            // The HTTP response ends with another blank line:
-            client.println();
-            // break out of the while loop:
             break;
           }
           else {      // if you got a newline, then clear currentLine:
@@ -141,6 +170,9 @@ void loop() {
         if (currentLine.endsWith("GET /L")) {
           snooze = 1;
           Serial.println("Snoozed");
+        }
+        if (currentLine.endsWith("GET /status")) {
+          statusRequested = true;
         }
       }
     }
