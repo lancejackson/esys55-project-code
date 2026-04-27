@@ -71,14 +71,6 @@ void setup() {
   snooze = 1;
 }
 
-void displayWebpage() {
-}
-
-void sendJSON() {
-  
-}
-
-
 void loop() {
   // compare the previous status to the current status
   if (status != WiFi.status()) {
@@ -160,7 +152,7 @@ void loop() {
               client.print("}");
               client.print("}");
               client.print("update();");
-              client.print("setInterval(update, 1000);");
+              client.print("setInterval(update, 200);");
               client.print("</script>");
               // The HTTP response ends with another blank line:
               client.println();
