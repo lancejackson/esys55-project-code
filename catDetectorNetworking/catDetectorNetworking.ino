@@ -107,16 +107,13 @@ void loop() {
   WiFiClient client = server.available();   // listen for incoming clients
   if (client) {                             // if you get a client,
     Serial.println("new client");           // print a message out the serial port
+    statusRequested = false;
     String currentLine = "";                // make a String to hold incoming data from the client
     while (client.connected()) {            // loop while the client's connected
       delayMicroseconds(10);                // This is required for the Arduino Nano RP2040 Connect - otherwise it will loop so fast that SPI will never be served.
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
         Serial.write(c);                    // print it out to the serial monitor
-
-        if (currentLine.endsWith("GET /status")) {
-          statusRequested = true;
-        }
 
         if (c == '\n') {                    // if the byte is a newline character
 
@@ -130,10 +127,10 @@ void loop() {
               client.println("Content-type:application/json");
               client.println();
               client.print("{");
-              client.print('\"alarm":');
+              client.print("\"alarm\":");
               client.print(alarm ? "true" : "false");
               client.print(",");
-              client.print('\"snooze\":');
+              client.print("\"snooze\":");
               client.print(snooze ? "true" : "false");
               client.print("}");
               client.println();
@@ -142,15 +139,27 @@ void loop() {
               client.println("Content-type:text/html");
               client.println();
               if (alarm) {
-                client.print("<p id=\"testDOM\" style=\"font-size:7vw;\">IR sensor activated</p><br>");
+                client.print("<p id=\"messageText\" style=\"font-size:7vw;\">IR sensor activated</p><br>");
               } else {
-                client.print("<p id=\"testDOM\" style=\"font-size:7vw;\">IR sensor not activated</p><br>");
+                client.print("<p id=\"messageText\" style=\"font-size:7vw;\">IR sensor not activated</p><br>");
               }
               client.print("<p style=\"font-size:7vw;\"> <a href=\"/L\">Snooze</a></p>");
               client.print("<script>");
-              client.print("function update() {");
-              client.print("document.getElementById(\"testDOM\").innerHTML = new Date();");
+              client.print("async function update() {");
+              // Surveying happens here...
+              // Fetch request
+              client.print("try {");
+              client.print("const response = await fetch('/status');");
+              client.print("const data = await response.json();");
+              client.print("document.getElementById(\"messageText\").textContent =");
+              client.print("data.alarm");
+              client.print(" ? 'Sensor is active'");
+              client.print(" : 'Sensor is not active';");
+              client.print("} catch (err) {");
+              client.print("document.getElementById(\"messageText\").textContent = 'Error';");
               client.print("}");
+              client.print("}");
+              client.print("update();");
               client.print("setInterval(update, 1000);");
               client.print("</script>");
               // The HTTP response ends with another blank line:
