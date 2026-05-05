@@ -117,6 +117,7 @@ void loop() {
             if (statusRequested) {
               client.println("HTTP/1.1 200 OK");
               client.println("Content-type:application/json");
+              client.print("Connection:close");
               client.println();
               client.print("{");
               client.print("\"alarm\":");
@@ -129,12 +130,9 @@ void loop() {
             } else { // otherwise
               client.println("HTTP/1.1 200 OK");
               client.println("Content-type:text/html");
+              client.print("Connection:close");
               client.println();
-              if (alarm) {
-                client.print("<p id=\"messageText\" style=\"font-size:7vw;\">IR sensor activated</p><br>");
-              } else {
-                client.print("<p id=\"messageText\" style=\"font-size:7vw;\">IR sensor not activated</p><br>");
-              }
+              client.print("<p id=\"messageText\" style=\"font-size:7vw;\">No data received yet</p><br>");              
               client.print("<p style=\"font-size:7vw;\"> <a href=\"/L\">Snooze</a></p>");
               client.print("<script>");
               client.print("async function update() {");
