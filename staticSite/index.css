@@ -12,12 +12,15 @@ body {
   margin-left: 65%;
 }
 
+/* Big Screens */ 
 @media (min-width: 768px) {
   #heading h1 {
     margin-left: 75%;
   }
 } 
 
+
+/* Phones */
 @media (max-width: 500px) {
   #heading h1 {
     margin: auto;
