@@ -18,12 +18,10 @@ body {
     margin-left: 75%;
   }
 } 
-
-
 /* Phones */
 @media (max-width: 500px) {
   #heading h1 {
-    margin: auto;
+    margin-left: 55%;
   }
 }
 
@@ -36,9 +34,12 @@ body {
 }
 
 #dashboard p {
-font-size: 20px;
+font-size: 4vw;
 }
 
+#dashboard a {
+font-size: 2vw;
+}
 .passive {
   color: red;
 }
