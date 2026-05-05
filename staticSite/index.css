@@ -11,6 +11,13 @@ body {
 #heading h1 {
   margin-left: 65%;
 }
+
+@media (min-width: 768px) {
+  #heading h1 {
+    margin-left: 75%;
+  }
+} 
+
 @media (max-width: 500px) {
   #heading h1 {
     margin: auto;
