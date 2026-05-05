@@ -1,0 +1,38 @@
+body {
+  background-color: #E5E5FF;
+}
+
+#heading {
+  padding: 15px;
+  background-color: midnightblue;
+  color: white;
+  width: 100%;
+}
+#heading h1 {
+  margin-left: 65%;
+}
+@media (max-width: 500px) {
+  #heading h1 {
+    margin: auto;
+  }
+}
+
+#dashboard {
+  padding: 15px;
+  margin: 15px;
+  background-color: white;
+  max-width: 90%;
+  border-radius: 15px;
+}
+
+#dashboard p {
+font-size: 20px;
+}
+
+.passive {
+  color: red;
+}
+
+.triggered {
+  color: darkslategray;
+}
